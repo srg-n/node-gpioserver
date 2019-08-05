@@ -41,9 +41,8 @@ http.createServer(function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.writeHead(200, {'Content-Type': 'text/plain'});
-    if (get.init === 'true') {
+    if (!get.init === 'true') {
         res.write(JSON.stringify(bcm));
-    } else {
         if (get.status === 'false') get.status = 1;
         if (get.status === 'true') get.status = 0;
         //res.write('identified ' + get.ident + ': BCM ' + bcm.ident[get.ident] + ' -> ' + get.status);
@@ -51,8 +50,8 @@ http.createServer(function (req, res) {
         exec('gpio -g write ' + bcm.ident[get.ident] + ' ' + get.status);
         bcm.status[get.ident] = get.status;
         fs.writeFileSync('gpioserver.data', JSON.stringify(bcm, null, 4));
-        res.write(JSON.stringify(bcm));
     }
+    res.write(JSON.stringify(bcm));
     res.end();
 }).listen(1337);
 
