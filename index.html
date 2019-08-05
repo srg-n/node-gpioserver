@@ -19,6 +19,13 @@
                 margin-bottom: 10px;
             }
         }
+
+        body {
+            -webkit-filter: blur(8px);
+            -webkit-transition: all 0.25s ease-in;
+            transition: all 0.25s ease-in;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
@@ -99,7 +106,7 @@
         console.debug('update seq complete');
     }
 
-    $(function () {	//	document is fully loaded
+    function ajaxReq(param) {
         $.ajax({	// init & update
             method: 'GET',
             url: 'http://192.168.1.20:1337',
@@ -108,27 +115,18 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            data: {
-                'init': 'true'
-            },
-            success: update
-        });
-        $('input').change(function () {
-            if (!triggeredByAPI) {
-                $.ajax({
-                    method: 'GET',
-                    url: 'http://192.168.1.20:1337',
-                    crossDomain: true,
-                    async: true,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: {
-                        'ident': this.id, 'status': $(this).prop('checked')
-                    },
-                    success: update
-                });
+            data: param,
+            success: function(res) {
+                update(res);
+                if (param.init) $('body').css('-webkit-filter', 'blur(0px)');
             }
+        });
+    }
+
+    $(function () {	//	document is fully loaded
+        ajaxReq({'init': true});
+        $('input').change(function () {
+            if (!triggeredByAPI) ajaxReq({'ident': this.id, 'status': $(this).prop('checked')});
         })
     })
 </script>
