@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.5.0/css/bootstrap4-toggle.min.css"
+          rel="stylesheet">
+
+    <title>Home control</title>
+    <style>
+        @media (max-width: 779px) {
+            .btn {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<br>
+<div class="container h-100 d-flex justify-content-center">
+    <div class="row">
+        <div class="col"><h2>⚡ Power Switch</h2>
+            <hr>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">💡 Lighting</div>
+        <div class="col">
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group mr-2" role="group">
+                    <input id="power-lighting" type="checkbox" data-on="DC 12v<br>Max 3A" data-off="DC 12v<br>Max 3A"
+                           checked data-toggle="toggle" data-onstyle="outline-primary" data-offstyle="outline-dark">
+                </div>
+            </div>
+        </div>
+        <div class="w-100"></div>
+        <hr>
+
+        <div class="col"><h2>💡 Lighting</h2>
+            <hr>
+        </div>
+        <div class="w-100"></div>
+        <div class="col">Desk/table</div>
+        <div class="col">
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group mr-2" role="group">
+                    <input id="light-computer" type="checkbox" data-on="Computer" data-size="large" data-off="Computer"
+                           checked data-toggle="toggle" data-onstyle="outline-primary" data-offstyle="outline-dark">
+                </div>
+                <div class="btn-group mr-2" role="group">
+                    <input id="light-workdesk" type="checkbox" data-on="Workdesk" data-size="large" data-off="Workdesk"
+                           checked data-toggle="toggle" data-onstyle="outline-primary" data-offstyle="outline-dark">
+                </div>
+                <!--
+                <div class="btn-group" role="group" aria-label="Third group">
+                  <button type="button" class="btn btn-secondary">8</button>
+                </div>
+                -->
+            </div>
+        </div>
+        <div class="w-100"></div>
+
+    </div>
+</div>
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.5.0/js/bootstrap4-toggle.min.js"></script>
+<script>
+    let bcm;
+    let triggeredByAPI;
+
+    function update(response) {
+        bcm = JSON.parse(response);
+        console.debug('update seq');
+        Object.entries(bcm.ident).forEach(([key, value]) => {
+            let status = bcm.status[key];
+            if (status === 1) status = 'off';
+            if (status === 0) status = 'on';
+            triggeredByAPI = true;
+            $('#' + key).bootstrapToggle(status);
+            console.debug(key + ': ' + status);
+        })
+        triggeredByAPI = false;
+        console.debug('update seq complete');
+    }
+
+    $(function () {	//	document is fully loaded
+        $.ajax({	// init & update
+            method: 'GET',
+            url: 'http://192.168.1.20:1337',
+            crossDomain: true,
+            async: true,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: {
+                'init': 'true'
+            },
+            success: update
+        });
+        $('input').change(function () {
+            if (!triggeredByAPI) {
+                $.ajax({
+                    method: 'GET',
+                    url: 'http://192.168.1.20:1337',
+                    crossDomain: true,
+                    async: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: {
+                        'ident': this.id, 'status': $(this).prop('checked')
+                    },
+                    success: update
+                });
+            }
+        })
+    })
+</script>
+</body>
+</html>
